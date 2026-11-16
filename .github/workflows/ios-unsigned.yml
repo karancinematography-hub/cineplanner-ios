@@ -1,0 +1,45 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: false
+      - name: Analyze and test
+        working-directory: apps/mobile_flutter
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter analyze
+          flutter test
+      - name: Build unsigned device app
+        run: bash scripts/build_ios.sh unsigned
+      - name: Package unsigned IPA
+        working-directory: apps/mobile_flutter
+        run: |
+          set -euo pipefail
+          test -d build/ios/iphoneos/Runner.app
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' build/ios/iphoneos/Runner.app/Info.plist
+          mkdir -p build/ios/unsigned-ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/unsigned-ipa/Payload/
+          cd build/ios/unsigned-ipa
+          /usr/bin/ditto -c -k --keepParent Payload CinePlanner-unsigned.ipa
+          unzip -t CinePlanner-unsigned.ipa
+      - name: Downloadable IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: CinePlanner-unsigned-IPA
+          path: apps/mobile_flutter/build/ios/unsigned-ipa/CinePlanner-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 1
