@@ -18,7 +18,7 @@ jobs:
           channel: stable
           cache: false
       - name: Analyze and test
-        working-directory: apps/mobile_flutter
+        working-directory: CinePlanner-iOS-Free-Build/apps/mobile_flutter
         run: |
           flutter pub get --enforce-lockfile
           flutter analyze
@@ -26,7 +26,7 @@ jobs:
       - name: Build unsigned device app
         run: bash CinePlanner-iOS-Free-Build/scripts/build_ios.sh unsigned
       - name: Package unsigned IPA
-        working-directory: apps/mobile_flutter
+        working-directory: CinePlanner-iOS-Free-Build/apps/mobile_flutter
         run: |
           set -euo pipefail
           test -d build/ios/iphoneos/Runner.app
@@ -40,6 +40,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CinePlanner-unsigned-IPA
-          path: apps/mobile_flutter/build/ios/unsigned-ipa/CinePlanner-unsigned.ipa
+          path: CinePlanner-iOS-Free-Build/apps/mobile_flutter/build/ios/unsigned-ipa/CinePlanner-unsigned.ipa
           if-no-files-found: error
           retention-days: 1
